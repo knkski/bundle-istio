@@ -1,0 +1,20 @@
+name: grafana
+display-name: Grafana
+summary: Grafana
+description: Grafana
+maintainers: [Juju Developers <juju@lists.ubuntu.com>]
+tags: [grafana, dashboard]
+series: [kubernetes]
+resources:
+  oci-image:
+    type: oci-image
+    description: 'Backing OCI image'
+    auto-fetch: true
+    upstream-source: 'grafana/grafana:6.0.2'
+provides:
+  grafana:
+    interface: http
+storage:
+  data:
+    type: filesystem
+    location: /data/grafana

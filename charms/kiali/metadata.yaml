@@ -1,0 +1,19 @@
+name: kiali
+display-name: Kiali
+summary: Service mesh observability and configuration
+description: https://www.kiali.io/
+maintainers: [Juju Developers <juju@lists.ubuntu.com>]
+tags: [service-mesh]
+series: [kubernetes]
+resources:
+  oci-image:
+    type: oci-image
+    description: 'Backing OCI image'
+    auto-fetch: true
+    upstream-source: 'docker.io/kiali/kiali:v0.16'
+provides:
+  kiali:
+    interface: http
+deployment:
+  type: stateless
+  service: omit

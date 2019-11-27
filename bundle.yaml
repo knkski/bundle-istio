@@ -1,0 +1,67 @@
+bundle: kubernetes
+applications:
+  cert-manager-cainjector:
+    charm: cs:~kubeflow-charmers/cert-manager-cainjector
+    source: ./charms/cert-manager-cainjector
+    scale: 1
+  cert-manager-controller:
+    charm: cs:~kubeflow-charmers/cert-manager-controller
+    source: ./charms/cert-manager-controller
+    scale: 1
+  cert-manager-webhook:
+    charm: cs:~kubeflow-charmers/cert-manager-webhook
+    source: ./charms/cert-manager-webhook
+    scale: 1
+#  grafana:
+#    charm: cs:~kubeflow-charmers/grafana
+#    source: ./charms/grafana
+#    scale: 1
+  istio-citadel:
+    charm: cs:~kubeflow-charmers/istio-citadel
+    source: ./charms/istio-citadel
+    scale: 1
+#  istio-egressgateway:
+#    charm: cs:~kubeflow-charmers/istio-egressgateway
+#    source: ./charms/istio-egressgateway
+#    scale: 1
+  istio-galley:
+    charm: cs:~kubeflow-charmers/istio-galley
+    source: ./charms/istio-galley
+    scale: 1
+  istio-ingressgateway:
+    charm: cs:~kubeflow-charmers/istio-ingressgateway
+    source: ./charms/istio-ingressgateway
+    scale: 1
+  istio-pilot:
+    charm: cs:~kubeflow-charmers/istio-pilot
+    source: ./charms/istio-pilot
+    scale: 1
+  istio-policy:
+    charm: cs:~kubeflow-charmers/istio-policy
+    source: ./charms/istio-policy
+    scale: 1
+  istio-sidecar-injector:
+    charm: cs:~kubeflow-charmers/istio-sidecar-injector
+    source: ./charms/istio-sidecar-injector
+    scale: 1
+  istio-telemetry:
+    charm: cs:~kubeflow-charmers/istio-telemetry
+    source: ./charms/istio-telemetry
+    scale: 1
+#  istio-tracing:
+#    charm: cs:~kubeflow-charmers/istio-tracing
+#    source: ./charms/istio-tracing
+#    scale: 1
+#  keycloak-gatekeeper:
+#    charm: cs:~kubeflow-charmers/keycloak-gatekeeper
+#    source: ./charms/keycloak-gatekeeper
+#    scale: 1
+#   kiali:
+    # charm: cs:~kubeflow-charmers/kiali
+    # source: ./charms/kiali
+    # scale: 1
+  prometheus:
+    charm: cs:~kubeflow-charmers/prometheus
+    source: ./charms/prometheus
+    scale: 1
+relations: []

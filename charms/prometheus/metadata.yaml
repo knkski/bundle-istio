@@ -1,0 +1,16 @@
+name: prometheus
+display-name: Prometheus
+summary: Prometheus
+description: Prometheus
+maintainers: [Juju Developers <juju@lists.ubuntu.com>]
+tags: [kubeflow, reverse-proxy, service-mesh]
+series: [kubernetes]
+resources:
+  oci-image:
+    type: oci-image
+    description: 'Backing OCI image'
+    auto-fetch: true
+    upstream-source: 'docker.io/prom/prometheus:v2.8.0'
+provides:
+  prometheus:
+    interface: http
