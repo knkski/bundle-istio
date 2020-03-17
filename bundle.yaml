@@ -1,17 +1,5 @@
 bundle: kubernetes
 applications:
-  cert-manager-cainjector:
-    charm: cs:~kubeflow-charmers/cert-manager-cainjector
-    source: ./charms/cert-manager-cainjector
-    scale: 1
-  cert-manager-controller:
-    charm: cs:~kubeflow-charmers/cert-manager-controller
-    source: ./charms/cert-manager-controller
-    scale: 1
-  cert-manager-webhook:
-    charm: cs:~kubeflow-charmers/cert-manager-webhook
-    source: ./charms/cert-manager-webhook
-    scale: 1
 #  grafana:
 #    charm: cs:~kubeflow-charmers/grafana
 #    source: ./charms/grafana
@@ -32,6 +20,8 @@ applications:
     charm: cs:~kubeflow-charmers/istio-ingressgateway
     source: ./charms/istio-ingressgateway
     scale: 1
+    # options:
+    #   kubernetes-service-type: NodePort
   istio-pilot:
     charm: cs:~kubeflow-charmers/istio-pilot
     source: ./charms/istio-pilot
@@ -64,4 +54,10 @@ applications:
     charm: cs:~kubeflow-charmers/prometheus
     source: ./charms/prometheus
     scale: 1
-relations: []
+relations:
+  - [istio-sidecar-injector:istio-galley, istio-galley:istio-galley]
+  - [istio-sidecar-injector:istio-ingressgateway, istio-ingressgateway:istio-ingressgateway]
+  - [istio-sidecar-injector:istio-pilot, istio-pilot:istio-pilot]
+  - [istio-sidecar-injector:istio-policy, istio-policy:istio-policy]
+  - [istio-sidecar-injector:istio-telemetry, istio-telemetry:istio-telemetry]
+  - [istio-ingressgateway:istio-pilot, istio-pilot:istio-pilot]

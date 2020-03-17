@@ -4,6 +4,7 @@ from subprocess import run
 
 import yaml
 
+from charmhelpers.core import hookenv
 from charms import layer
 from charms.reactive import clear_flag, hook, set_flag, when, when_any, when_not
 
@@ -16,6 +17,11 @@ def upgrade_charm():
 @when("charm.started")
 def charm_ready():
     layer.status.active("")
+
+
+@when("istio-galley.available")
+def configure_http(http):
+    http.configure(port=9901, hostname=hookenv.application_name())
 
 
 @when_any("layer.docker-resource.oci-image.changed")
@@ -48,10 +54,47 @@ def start_charm():
             "-days",
             "365",
             "-subj",
-            "/CN=localhost",
+            f"/CN={hookenv.service_name()}.{namespace}.svc",
             "-nodes",
         ],
         check=True,
+    )
+
+    mesh = yaml.dump(
+        {
+            "disablePolicyChecks": False,
+            "enableTracing": True,
+            "accessLogFile": "/dev/stdout",
+            "accessLogFormat": "",
+            "accessLogEncoding": "TEXT",
+            "mixerCheckServer": f"istio-policy.{namespace}.svc.cluster.local:9091",
+            "mixerReportServer": f"istio-telemetry.{namespace}.svc.cluster.local:9091",
+            "policyCheckFailOpen": False,
+            "ingressService": "istio-ingressgateway",
+            "connectTimeout": "10s",
+            "dnsRefreshRate": "5s",
+            "sdsUdsPath": None,
+            "enableSdsTokenMount": False,
+            "sdsUseK8sSaJwt": False,
+            "trustDomain": None,
+            "outboundTrafficPolicy": {"mode": "ALLOW_ANY"},
+            "localityLbSetting": {},
+            "rootNamespace": namespace,
+            "configSources": [{"address": f"istio-galley.{namespace}.svc:9901"}],
+            "defaultConfig": {
+                "connectTimeout": "10s",
+                "configPath": "/etc/istio/proxy",
+                "binaryPath": "/usr/local/bin/envoy",
+                "serviceCluster": "istio-proxy",
+                "drainDuration": "45s",
+                "parentShutdownDuration": "1m0s",
+                "proxyAdminPort": 15000,
+                "concurrency": 2,
+                "tracing": {"zipkin": {"address": f"zipkin.{namespace}:9411"}},
+                "controlPlaneAuthPolicy": "NONE",
+                "discoveryAddress": f"istio-pilot.{namespace}:15010",
+            },
+        }
     )
 
     layer.caas_base.pod_spec_set(
@@ -89,10 +132,7 @@ def start_charm():
                         {
                             "name": "mesh-config",
                             "mountPath": "/etc/mesh-config",
-                            "files": {
-                                "mesh": Path("files/mesh.yaml").read_text(),
-                                "meshNetworks": "networks: {}",
-                            },
+                            "files": {"mesh": mesh, "meshNetworks": "networks: {}"},
                         },
                         {
                             "name": "config",
@@ -116,10 +156,12 @@ def start_charm():
             ],
         },
         {
-            'kubernetesResources': {
-                'customResourceDefinitions': {crd["metadata"]["name"]: crd["spec"] for crd in crds},
+            "kubernetesResources": {
+                "customResourceDefinitions": {
+                    crd["metadata"]["name"]: crd["spec"] for crd in crds
+                }
             }
-        }
+        },
     )
 
     layer.status.maintenance("creating container")

@@ -59,7 +59,7 @@ def start_charm():
             "-days",
             "365",
             "-subj",
-            "/CN=localhost",
+            f"/CN={hookenv.service_name()}",
             "-nodes",
         ],
         check=True,
@@ -107,11 +107,11 @@ def start_charm():
             "version": 2,
             "containers": [
                 {
-                    "name": "pilot",
+                    "name": "discovery",
                     "args": [
                         "discovery",
                         "--monitoringAddr=:15014",
-                        "--log_output_level=default:info",
+                        "--log_output_level=all:debug",
                         "--domain",
                         "cluster.local",
                         "--secureGrpcAddr",
@@ -125,7 +125,9 @@ def start_charm():
                         "password": pilot_image.password,
                     },
                     "config": {
-                        "POD_NAME": "metadata.name",
+                        "POD_NAME": {
+                            "field": {"path": "metadata.name", "api-version": "v1"}
+                        },
                         "POD_NAMESPACE": namespace,
                         "GODEBUG": "gctrace=1",
                         "PILOT_PUSH_THROTTLE": "100",
@@ -136,6 +138,7 @@ def start_charm():
                     "ports": [
                         {"name": "http-leg-disc", "containerPort": 8080},
                         {"name": "grpc-xds", "containerPort": 15010},
+                        {"name": "monitoring", "containerPort": 15014},
                     ],
                     "files": [
                         {
@@ -154,7 +157,7 @@ def start_charm():
                     ],
                 },
                 {
-                    "name": "proxy",
+                    "name": "istio-proxy",
                     "args": [
                         "proxy",
                         "--domain",
@@ -172,10 +175,15 @@ def start_charm():
                         "password": proxy_image.password,
                     },
                     "config": {
-                        "POD_NAME": "metadata.name",
+                        "POD_NAME": {
+                            "field": {"path": "metadata.name", "api-version": "v1"}
+                        },
                         "POD_NAMESPACE": namespace,
-                        "INSTANCE_IP": "status.podIP",
-                        "SDS_ENABLED": True,
+                        "INSTANCE_IP": {
+                            "field": {"path": "status.podIP", "api-version": "v1"}
+                        },
+                        "SDS_ENABLED": False,
+                        "NODE_NAMESPACE": namespace,
                     },
                     "ports": [
                         {"name": "http-1", "containerPort": 15003},

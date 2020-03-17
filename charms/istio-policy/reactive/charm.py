@@ -117,10 +117,12 @@ def start_charm():
                         "NONE",
                     ],
                     "config": {
-                        "POD_NAME": "metadata.name",
-                        "POD_NAMESPACE": "metadata.namespace",
-                        "INSTANCE_IP": "status.podIP",
-                        "SDS_ENABLED": True,
+                        "POD_NAME": {"field": {"path": "metadata.name", "api-version": "v1"}},
+                        "POD_NAMESPACE": namespace,
+                        "INSTANCE_IP": {
+                            "field": {"path": "status.PodIP", "api-version": "v1"}
+                        },
+                        "SDS_ENABLED": False,
                     },
                     "imageDetails": {
                         "imagePath": proxy_image.registry_path,
@@ -130,11 +132,11 @@ def start_charm():
                     "ports": [
                         {"name": "grpc-mixer", "containerPort": 9091},
                         {"name": "grpc-mixer-mtls", "containerPort": 15004},
-                        {
-                            "name": "envoy-prom",
-                            "containerPort": 15090,
-                            "protocol": "TCP",
-                        },
+                        # {
+                        #     "name": "envoy-prom",
+                        #     "containerPort": 15090,
+                        #     "protocol": "TCP",
+                        #  },
                     ],
                     "files": [
                         {

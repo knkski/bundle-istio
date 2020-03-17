@@ -1,11 +1,21 @@
 import os
+from base64 import b64encode
 from pathlib import Path
 from subprocess import run
 
 import yaml
 
+from charmhelpers.core import hookenv
 from charms import layer
-from charms.reactive import clear_flag, hook, set_flag, when, when_any, when_not
+from charms.reactive import (
+    clear_flag,
+    endpoint_from_name,
+    hook,
+    set_flag,
+    when,
+    when_any,
+    when_not,
+)
 
 
 @hook("upgrade-charm")
@@ -23,12 +33,14 @@ def update_image():
     clear_flag("charm.started")
 
 
-@when("layer.docker-resource.oci-image.available")
+@when("layer.docker-resource.oci-image.available", "istio-galley.available")
 @when_not("charm.started")
 def start_charm():
     layer.status.maintenance("configuring container")
 
     image_info = layer.docker_resource.get_info("oci-image")
+
+    galley = endpoint_from_name("istio-galley").services()[0]["hosts"][0]
 
     namespace = os.environ["JUJU_MODEL_NAME"]
 
@@ -46,11 +58,12 @@ def start_charm():
             "-days",
             "365",
             "-subj",
-            "/CN=localhost",
+            f"/CN={hookenv.service_name()}.{namespace}.svc",
             "-nodes",
         ],
         check=True,
     )
+    ca_bundle = b64encode(Path("cert.pem").read_bytes()).decode("utf-8")
 
     layer.caas_base.pod_spec_set(
         {
@@ -102,13 +115,13 @@ def start_charm():
                                         "disablePolicyChecks": True,
                                         "reportBatchMaxEntries": 100,
                                         "reportBatchMaxTime": "1s",
-                                        "enableTracing": True,
-                                        "accessLogFile": "",
+                                        "enableTracing": False,
+                                        "accessLogFile": "/dev/stdout",
                                         "accessLogFormat": "",
                                         "accessLogEncoding": "TEXT",
                                         "enableEnvoyAccessLogService": False,
-                                        "mixerCheckServer": f"istio-policy.{namespace}.svc.cluster.local:15004",
-                                        "mixerReportServer": f"istio-telemetry.{namespace}.svc.cluster.local:15004",
+                                        "mixerCheckServer": f"istio-policy.{namespace}.svc.cluster.local:9091",
+                                        "mixerReportServer": f"istio-telemetry.{namespace}.svc.cluster.local:9091",
                                         "policyCheckFailOpen": False,
                                         "ingressService": "istio-ingressgateway",
                                         "connectTimeout": "10s",
@@ -121,8 +134,8 @@ def start_charm():
                                         "rootNamespace": namespace,
                                         "configSources": [
                                             {
-                                                "address": f"istio-galley.{namespace}.svc:9901",
-                                                "tlsSettings": {"mode": "ISTIO_MUTUAL"},
+                                                "address": f"{galley['hostname']}.{namespace}.svc:{galley['port']}",
+                                                # "tlsSettings": {"mode": "NONE"},
                                             }
                                         ],
                                         "defaultConfig": {
@@ -139,8 +152,8 @@ def start_charm():
                                                     "address": f"zipkin.{namespace}:9411"
                                                 }
                                             },
-                                            "controlPlaneAuthPolicy": "MUTUAL_TLS",
-                                            "discoveryAddress": f"istio-pilot.{namespace}:15011",
+                                            "controlPlaneAuthPolicy": "NONE",
+                                            "discoveryAddress": f"istio-pilot.{namespace}:15010",
                                         },
                                     }
                                 ),
@@ -167,7 +180,38 @@ def start_charm():
                     ],
                 }
             ],
-        }
+        },
+        k8s_resources={
+            "kubernetesResources": {
+                "mutatingWebhookConfigurations": {
+                    "sidecar-injector": [
+                        {
+                            "name": "sidecar-injector.istio.io",
+                            "clientConfig": {
+                                "service": {
+                                    "name": hookenv.service_name(),
+                                    "namespace": namespace,
+                                    "path": "/inject",
+                                },
+                                "caBundle": ca_bundle,
+                            },
+                            "rules": [
+                                {
+                                    "operations": ["CREATE"],
+                                    "apiGroups": [""],
+                                    "apiVersions": ["v1"],
+                                    "resources": ["pods"],
+                                }
+                            ],
+                            "failurePolicy": "Fail",
+                            "namespaceSelector": {
+                                "matchLabels": {"istio-injection": "enabled"}
+                            },
+                        }
+                    ],
+                }
+            }
+        },
     )
 
     layer.status.maintenance("creating container")

@@ -3,7 +3,15 @@ from pathlib import Path
 from subprocess import run
 
 from charms import layer
-from charms.reactive import clear_flag, hook, set_flag, when, when_any, when_not
+from charms.reactive import (
+    clear_flag,
+    hook,
+    hookenv,
+    set_flag,
+    when,
+    when_any,
+    when_not,
+)
 
 
 @hook("upgrade-charm")
@@ -55,13 +63,13 @@ def start_charm():
             "version": 2,
             "containers": [
                 {
-                    "name": "istio-ingressgateway",
+                    "name": "istio-proxy",
                     "args": [
                         "proxy",
                         "router",
                         "--domain",
                         f"{namespace}.svc.cluster.local",
-                        "--log_output_level=default:info",
+                        "--log_output_level=all:debug",
                         "--drainDuration",
                         "45s",
                         "--parentShutdownDuration",
@@ -69,9 +77,9 @@ def start_charm():
                         "--connectTimeout",
                         "10s",
                         "--serviceCluster",
-                        "istio-ingressgateway",
-                        "--zipkinAddress",
-                        "zipkin:9411",
+                        hookenv.service_name(),
+                        # "--zipkinAddress",
+                        # "zipkin:9411",
                         "--proxyAdminPort",
                         "15000",
                         "--statusPort",
@@ -79,7 +87,7 @@ def start_charm():
                         "--controlPlaneAuthPolicy",
                         "NONE",
                         "--discoveryAddress",
-                        "istio-pilot:15011",
+                        "istio-pilot:15010",
                     ],
                     "imageDetails": {
                         "imagePath": image_info.registry_path,
@@ -87,20 +95,37 @@ def start_charm():
                         "password": image_info.password,
                     },
                     "config": {
-                        "NODE_NAME": "spec.nodeName",
-                        "POD_NAME": "metadata.name",
+                        "NODE_NAME": {
+                            "field": {"path": "spec.nodeName", "api-version": "v1"}
+                        },
+                        "POD_NAME": {
+                            "field": {"path": "metadata.name", "api-version": "v1"}
+                        },
                         "POD_NAMESPACE": namespace,
-                        "INSTANCE_IP": "status.podIP",
-                        "HOST_IP": "status.hostIP",
-                        "ISTIO_META_POD_NAME": "metadata.name",
+                        "INSTANCE_IP": {
+                            "field": {"path": "status.podIP", "api-version": "v1"}
+                        },
+                        "HOST_IP": {
+                            "field": {"path": "status.hostIP", "api-version": "v1"}
+                        },
+                        "SERVICE_ACCOUNT": {
+                            "field": {
+                                "path": "spec.serviceAccountName",
+                                "api-version": "v1",
+                            }
+                        },
+                        "ISTIO_META_POD_NAME": {
+                            "field": {"path": "metadata.name", "api-version": "v1"}
+                        },
                         "ISTIO_META_CONFIG_NAMESPACE": namespace,
-                        "SDS_ENABLED": True,
-                        "ISTIO_META_WORKLOAD_NAME": "istio-ingressgateway",
-                        "ISTIO_META_OWNER": "kubernetes://api/apps/v1/namespaces/$(namespace)/deployments/istio-ingressgateway",
+                        "SDS_ENABLED": False,
+                        "ISTIO_META_WORKLOAD_NAME": hookenv.service_name(),
+                        "ISTIO_META_OWNER": f"kubernetes://api/apps/v1/namespaces/{namespace}/deployments/istio-ingressgateway",
                         "ISTIO_META_ROUTER_MODE": "sni-dnat",
                     },
                     "ports": [
                         {"name": "status-port", "containerPort": 15020},
+                        {"name": "wut", "containerPort": 15000},
                         {"name": "http2", "containerPort": 80},
                         {"name": "https", "containerPort": 443},
                         {"name": "tcp", "containerPort": 31400},
@@ -109,11 +134,11 @@ def start_charm():
                         {"name": "grafana", "containerPort": 15031},
                         {"name": "tracing", "containerPort": 15032},
                         {"name": "tls", "containerPort": 15443},
-                        {
-                            "name": "envoy-prom",
-                            "containerPort": 15090,
-                            "protocol": "TCP",
-                        },
+                        # {
+                        #     "name": "envoy-prom",
+                        #     "containerPort": 15090,
+                        #     "protocol": "TCP",
+                        # },
                     ],
                     "files": [
                         {
@@ -142,7 +167,7 @@ def start_charm():
                         },
                     ],
                 }
-            ]
+            ],
         }
     )
 

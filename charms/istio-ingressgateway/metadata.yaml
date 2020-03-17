@@ -29,7 +29,13 @@ resources:
     type: oci-image
     description: 'Backing OCI image'
     auto-fetch: true
-    upstream-source: gcr.io/istio-release/proxyv2:release-1.3-latest-daily
+    upstream-source: docker.io/istio/proxyv2:1.3.4
+deployment:
+  type: stateless
+  service: loadbalancer
 provides:
   istio-ingressgateway:
+    interface: http
+requires:
+  istio-pilot:
     interface: http

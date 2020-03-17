@@ -99,11 +99,11 @@ def start_charm():
                                 "key.pem": Path("key.pem").read_text(),
                             },
                         },
-                        {
-                            "name": "telemetry-adapter-secret",
-                            "mountPath": "/var/run/secrets/istio.io/telemetry/adapter",
-                            "files": {},
-                        },
+                        #  {
+                        #      "name": "telemetry-adapter-secret",
+                        #      "mountPath": "/var/run/secrets/istio.io/telemetry/adapter",
+                        #      "files": {},
+                        #  },
                     ],
                 },
                 {
@@ -125,19 +125,21 @@ def start_charm():
                         "password": proxy_image.password,
                     },
                     "config": {
-                        "POD_NAME": "metadata.name",
+                        "POD_NAME": {"field": {"path": "metadata.name", "api-version": "v1"}},
                         "POD_NAMESPACE": model,
-                        "INSTANCE_IP": "status.podIP",
-                        "SDS_ENABLED": True,
+                        "INSTANCE_IP": {
+                            "field": {"path": "status.PodIP", "api-version": "v1"}
+                        },
+                        "SDS_ENABLED": False,
                     },
                     "ports": [
                         {"name": "port-3", "containerPort": 9091},
                         {"name": "port-4", "containerPort": 15004},
-                        {
-                            "name": "http-envoy-prom",
-                            "containerPort": 15090,
-                            "protocol": "TCP",
-                        },
+                        #  {
+                        #      "name": "http-envoy-prom",
+                        #      "containerPort": 15090,
+                        #      "protocol": "TCP",
+                        #  },
                     ],
                     "files": [
                         {

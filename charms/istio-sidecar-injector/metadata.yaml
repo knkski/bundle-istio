@@ -33,3 +33,15 @@ resources:
 provides:
   istio-sidecar-injector:
     interface: http
+requires:
+  istio-galley:
+    interface: http
+  istio-ingressgateway:
+    interface: http
+  istio-pilot:
+    interface: http
+  istio-policy:
+    interface: http
+  istio-telemetry:
+    interface: http
+

@@ -60,7 +60,7 @@ def start_charm():
                 {
                     "name": "citadel",
                     "args": [
-                        "--sds-enabled=true",
+                        "--sds-enabled=false",
                         "--append-dns-names=true",
                         "--grpc-port=8060",
                         f"--citadel-storage-namespace={model}",

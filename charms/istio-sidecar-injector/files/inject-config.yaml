@@ -82,10 +82,10 @@ template: |-
   {{- else }}
     image: "{{ annotation .ObjectMeta `sidecar.istio.io/proxyImage` .Values.global.hub }}/{{ .Values.global.proxy.image }}:{{ .Values.global.tag }}"
   {{- end }}
-    ports:
-    - containerPort: 15090
-      protocol: TCP
-      name: http-envoy-prom
+    #ports:
+    #- containerPort: 15090
+    #  protocol: TCP
+    #  name: http-envoy-prom
     args:
     - proxy
     - sidecar

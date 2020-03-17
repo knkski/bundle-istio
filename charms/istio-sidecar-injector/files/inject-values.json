@@ -140,7 +140,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
@@ -311,7 +311,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
@@ -415,7 +415,7 @@
       "ports": [
         {
           "name": "grpc-pilot-mtls",
-          "port": 15011
+          "port": 15010
         },
         {
           "name": "grpc-pilot",
@@ -479,8 +479,8 @@
       "meshExpansionPorts": [
         {
           "name": "tcp-pilot-grpc-tls",
-          "port": 15011,
-          "targetPort": 15011
+          "port": 15010,
+          "targetPort": 15010
         },
         {
           "name": "tcp-mixer-grpc-tls",
@@ -729,7 +729,7 @@
       "image": "proxy_init"
     },
     "sds": {
-      "enabled": true,
+      "enabled": false,
       "token": {
         "aud": "istio-ca"
       },
@@ -920,7 +920,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
@@ -1136,7 +1136,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
@@ -1316,7 +1316,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
@@ -1496,7 +1496,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
@@ -1690,7 +1690,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
@@ -1865,7 +1865,7 @@
         "image": "proxy_init"
       },
       "sds": {
-        "enabled": true,
+        "enabled": false,
         "token": {
           "aud": "istio-ca"
         },
